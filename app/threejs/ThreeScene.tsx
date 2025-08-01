@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import vertex from "./shaders/vertex.glsl";
 import fragment from "./shaders/fragment.glsl";
 import { getLenis } from '../lib/lenis';
+import gsap from 'gsap';
 
 const ThreeScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +82,9 @@ const ThreeScene: React.FC = () => {
           uniforms: {
             time: { value: 0 },
             uTexture: { value: texture },
+            uMouse: { value: new THREE.Vector2(0, 0) },
+            uEnter: { value: 0 },
+            aspect: { value: new THREE.Vector2(width, height) },
           },
         });
 
@@ -97,6 +101,33 @@ const ThreeScene: React.FC = () => {
         imageMesh.position.x = left - size.width / 2 + width / 2;
         imageMesh.position.y = -(top - size.height / 2) - height / 2;
         scene.add(imageMesh);
+
+
+        image.addEventListener('mousemove', (e) => {
+          const x = (e as MouseEvent).offsetX / width;
+          const y = 1 - (e as MouseEvent).offsetY / height;
+          imageMaterial.uniforms.uMouse.value.set(x, y);
+
+          gsap.to(imageMaterial.uniforms.uMouse.value, {
+            x: x,
+            y: y,
+            duration: 1,
+          });
+        });
+
+        image.addEventListener('mouseenter', () => {
+          gsap.to(imageMaterial.uniforms.uEnter, {
+            value: 1,
+            duration: 1,
+          });
+        });
+
+        image.addEventListener('mouseleave', () => {
+          gsap.to(imageMaterial.uniforms.uEnter, {
+            value: 0,
+            duration: 1,
+          });
+        });
 
         return {
           imageMesh,
