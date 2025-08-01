@@ -2,7 +2,7 @@ import Image from "next/image";
 
 const Gallery = () => {
   return (
-    <section className="grid grid-cols-1 md:grid-cols-2 justify-center justify-items-center items-center lg:grid-cols-3 gap-12 p-20">
+    <section className="grid grid-cols-1 md:grid-cols-2 justify-center justify-items-center items-center lg:grid-cols-3 gap-12 p-20 min-h-[200vh]">
       {
         Array.from({ length: 9 }).map((_, index) => (
           <div className="flex flex-col gap-2 w-fit" key={index}>

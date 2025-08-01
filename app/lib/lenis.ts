@@ -1,21 +1,19 @@
 import Lenis from 'lenis';
 
 let lenis: Lenis | null = null;
+let isInitializing = false;
 
 export const initLenis = () => {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') return null;
+  if (lenis) return lenis; // 如果已經初始化，直接返回
+  if (isInitializing) return null; // 如果正在初始化，返回 null
+
+  isInitializing = true;
 
   // 初始化 Lenis
   lenis = new Lenis({
     duration: 1.2,
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // https://www.desmos.com/calculator/brs54l4xou
-    direction: 'vertical', // vertical, horizontal
-    gestureDirection: 'vertical', // vertical, horizontal, both
-    smooth: true,
-    mouseMultiplier: 1,
-    smoothTouch: false,
-    touchMultiplier: 2,
-    infinite: false,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
   });
 
   // 使用 requestAnimationFrame 來更新滾動
@@ -26,6 +24,8 @@ export const initLenis = () => {
 
   requestAnimationFrame(raf);
 
+  isInitializing = false;
+  console.log('Lenis initialized successfully');
   return lenis;
 };
 
@@ -36,4 +36,5 @@ export const destroyLenis = () => {
     lenis.destroy();
     lenis = null;
   }
+  isInitializing = false;
 }; 

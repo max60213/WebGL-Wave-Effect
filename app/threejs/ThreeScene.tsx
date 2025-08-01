@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import vertex from "./shaders/vertex.glsl";
 import fragment from "./shaders/fragment.glsl";
+import { getLenis } from '../lib/lenis';
 
 const ThreeScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,19 +132,25 @@ const ThreeScene: React.FC = () => {
       camera.updateProjectionMatrix();
     });
 
-    window.addEventListener("scroll", () => {
-      console.log("scroll");
-      webglImages.forEach((object) => {
-        const { width, height, top, left } = object.image.getBoundingClientRect();
+    // 等待 Lenis 初始化完成後再註冊事件
+    const setupLenisScroll = () => {
+      const lenis = getLenis();
+      console.log('Lenis instance:', lenis);
 
-        object.imageMesh.scale.set(width, height, 1);
-        object.imageMesh.position.x = left - size.width / 2 + width / 2;
-        object.imageMesh.position.y = -(top - size.height / 2) - height / 2;
-      });
+      if (lenis) {
+        lenis.on('scroll', (e: any) => {
+          console.log('Scroll position:', e.scroll);
+          webglImages.forEach((object) => {
+            const { top, height, width } = object.image.getBoundingClientRect();
+            object.imageMesh.position.y = -(top - size.height / 2) - height / 2;
+            object.imageMesh.scale.set(width, height, 1);
+          });
+        });
+      }
+    };
 
-      camera.updateProjectionMatrix();
-    });
-
+    // 延遲一點時間確保 Lenis 已經初始化
+    setTimeout(setupLenisScroll, 10);
 
     camera.updateProjectionMatrix();
 
@@ -151,6 +158,7 @@ const ThreeScene: React.FC = () => {
 
       webglImages.forEach((object) => {
         object.imageMaterial.uniforms.time.value = time / 1000;
+
       });
 
       material.uniforms.time.value = time / 1000;
@@ -159,6 +167,6 @@ const ThreeScene: React.FC = () => {
     }
 
   }, []);
-  return <div ref={containerRef} className="fixed inset-0 -z-1" />;
+  return <div ref={containerRef} className="fixed inset-0 pointer-events-none" />;
 };
 export default ThreeScene;
