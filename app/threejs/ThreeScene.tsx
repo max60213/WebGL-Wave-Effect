@@ -103,19 +103,40 @@ const ThreeScene: React.FC = () => {
         scene.add(imageMesh);
 
 
+        // 追蹤是否是第一次滑鼠移動
+        let isFirstMove = true;
+
         image.addEventListener('mousemove', (e) => {
           const x = (e as MouseEvent).offsetX / width;
           const y = 1 - (e as MouseEvent).offsetY / height;
-          imageMaterial.uniforms.uMouse.value.set(x, y);
 
-          gsap.to(imageMaterial.uniforms.uMouse.value, {
-            x: x,
-            y: y,
-            duration: 1,
-          });
+          if (isFirstMove) {
+            // 第一次移動時立即設定位置，不使用動畫
+            imageMaterial.uniforms.uMouse.value.set(x, y);
+            isFirstMove = false;
+          } else {
+            // 後續移動使用平滑動畫
+            gsap.to(imageMaterial.uniforms.uMouse.value, {
+              x,
+              y,
+              duration: 1,
+              ease: "power2.out"
+            });
+          }
         });
 
-        image.addEventListener('mouseenter', () => {
+        image.addEventListener('mouseenter', (e) => {
+          // 在 mouseenter 時立即設定正確的滑鼠位置
+          const rect = (image as HTMLElement).getBoundingClientRect();
+          const x = ((e as MouseEvent).clientX - rect.left) / width;
+          const y = 1 - ((e as MouseEvent).clientY - rect.top) / height;
+          
+          // 立即設定位置，不使用動畫
+          imageMaterial.uniforms.uMouse.value.set(x, y);
+          
+          // 重置第一次移動標記
+          isFirstMove = true;
+          
           gsap.to(imageMaterial.uniforms.uEnter, {
             value: 1,
             duration: 1,
@@ -123,6 +144,9 @@ const ThreeScene: React.FC = () => {
         });
 
         image.addEventListener('mouseleave', () => {
+          // 重置第一次移動標記
+          isFirstMove = true;
+          
           gsap.to(imageMaterial.uniforms.uEnter, {
             value: 0,
             duration: 1,
